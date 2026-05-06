@@ -27,12 +27,27 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
 
-
+    'ninja',
     'rest_framework',
     'corsheaders',
     'preprocessing',
     'ml_pipeline',
+    'geospatial',
+    'patients',
+    'prediction_engine',
+    'moh_reporting',
+    'data_ingestion',
+    'compliance',
+    'clinicians',
 ]
+
+# Preprocessing defaults
+PREPROCESSING_DEFAULTS = {
+    'DP_EPSILON': 0.1,
+    'K_ANONYMITY': 10,
+    'MIN_GRID_SIZE_KM2': 25,
+    'DATA_RETENTION_DAYS': 90,
+}
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
