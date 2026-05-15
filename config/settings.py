@@ -88,6 +88,12 @@ DATABASES = {
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
+CELERY_BEAT_SCHEDULE = {
+    'generate-weekly-heatmaps': {
+        'task': 'geospatial.tasks.generate_weekly_heatmaps',
+        'schedule': 604800.0,  # 7 days in seconds
+    },
+}
 
 
 # Password validation
