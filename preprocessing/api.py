@@ -2,6 +2,7 @@ from ninja import Router, NinjaAPI
 from django.shortcuts import get_object_or_404
 from typing import List
 import uuid
+from uuid import UUID
 import asyncio
 
 from .schemas import (

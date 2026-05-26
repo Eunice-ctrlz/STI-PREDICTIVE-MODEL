@@ -2,8 +2,10 @@ from ninja import Router, NinjaAPI
 from django.shortcuts import get_object_or_404
 from typing import List, Optional
 from datetime import date, timedelta
+import numpy as np
+from django.db.models import Avg
 
-from .schemas import (
+from .schema import (
     GridCellInput, IncidentAggregationInput, HotspotDetectionConfig,
     FacilityQuery, GridCellOut, IncidentAggregateOut, HeatmapLayerOut,
     HotspotAlertOut, FacilityOut, SpatialAnalysisOut, MoransIResult,

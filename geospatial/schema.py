@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import List, Dict, Optional, Literal, Tuple
+from typing import List, Dict, Optional, Literal, Tuple, Annotated
 from uuid import UUID
 from datetime import date, datetime
 from pydantic import confloat, conint
@@ -12,47 +12,47 @@ class GridCellInput(Schema):
     grid_lon: float = Field(..., ge=33.0, le=42.0, description="Rounded longitude")
     county: str = Field(..., min_length=1, max_length=50)
     sub_county: str = Field(..., min_length=1, max_length=50)
-    population_estimate: conint(ge=0) = 0
-    healthcare_access_index: confloat(ge=0.0, le=1.0) = 0.0
-    road_network_score: confloat(ge=0.0, le=1.0) = 0.0
+    population_estimate: Annotated[int, Field(ge=0)] = 0
+    healthcare_access_index: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
+    road_network_score: Annotated[float, Field(ge=0.0, le=1.0)] = 0.0
 
 class IncidentAggregationInput(Schema):
     """Input for aggregating incidents into a grid cell"""
     grid_cell_id: str
     sti_type: Literal["hiv", "chlamydia", "syphilis", "gonorrhoea", "hpv", "hsv2", "all"]
-    incident_count: conint(ge=0)
+    incident_count: Annotated[int, Field(ge=0)]
     period_start: date
     period_end: date
 
 class HotspotDetectionConfig(Schema):
     """Configuration for hotspot detection algorithms"""
     # DBSCAN parameters
-    dbscan_eps_km: confloat(ge=1.0, le=50.0) = 10.0
-    dbscan_min_samples: conint(ge=3, le=100) = 5
+    dbscan_eps_km: Annotated[float, Field(ge=1.0, le=50.0)] = 10.0
+    dbscan_min_samples: Annotated[int, Field(ge=3, le=100)] = 5
     
     # KDE parameters
-    kde_bandwidth_km: confloat(ge=1.0, le=50.0) = 15.0
+    kde_bandwidth_km: Annotated[float, Field(ge=1.0, le=50.0)] = 15.0
     
     # Risk thresholds
-    low_threshold: confloat(ge=0.0, le=1.0) = 0.25
-    moderate_threshold: confloat(ge=0.0, le=1.0) = 0.50
-    high_threshold: confloat(ge=0.0, le=1.0) = 0.75
+    low_threshold: Annotated[float, Field(ge=0.0, le=1.0)] = 0.25
+    moderate_threshold: Annotated[float, Field(ge=0.0, le=1.0)] = 0.50
+    high_threshold: Annotated[float, Field(ge=0.0, le=1.0)] = 0.75
     
     # Temporal window
-    analysis_period_days: conint(ge=7, le=365) = 30
+    analysis_period_days: Annotated[int, Field(ge=7, le=365)] = 30
     
     # Privacy
     apply_differential_privacy: bool = True
-    dp_epsilon: confloat(gt=0, le=1.0) = 0.1
-    min_cell_size_km2: conint(ge=25) = 25
+    dp_epsilon: Annotated[float, Field(gt=0, le=1.0)] = 0.1
+    min_cell_size_km2: Annotated[int, Field(ge=25)] = 25
 
 class FacilityQuery(Schema):
     """Query for finding nearest healthcare facilities"""
     lat: float = Field(..., ge=-5.0, le=6.0)
     lon: float = Field(..., ge=33.0, le=42.0)
     sti_type: Optional[Literal["hiv", "chlamydia", "syphilis", "gonorrhoea", "hpv", "hsv2"]] = None
-    max_distance_km: confloat(ge=1.0, le=200.0) = 50.0
-    limit: conint(ge=1, le=50) = 10
+    max_distance_km: Annotated[float, Field(ge=1.0, le=200.0)] = 50.0
+    limit: Annotated[int, Field(ge=1, le=50)] = 10
 
 # --- Output Schemas ---
 
