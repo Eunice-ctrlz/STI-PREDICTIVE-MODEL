@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import List, Dict, Optional, Literal, Annotated
+from typing import List, Dict, Optional, Literal, Annotated, Any
 from uuid import UUID
 from datetime import date, datetime
 from pydantic import confloat, conint
@@ -50,7 +50,7 @@ class GuidanceDraft(Schema):
     sti_type: Literal["hiv", "chlamydia", "syphilis", "gonorrhoea", "hpv", "hsv2", "general"]
     risk_level: Literal["low", "moderate", "high", "critical"]
     symptom_pattern: Dict[str, List[str]]
-    differential_diagnosis: List[Dict[str, any]]
+    differential_diagnosis: List[Dict[str, Any]]
     recommended_tests: List[str]
     treatment_protocol: Dict
     referral_criteria: List[str]
@@ -87,7 +87,7 @@ class RiskAlertOut(Schema):
     risk_score: Annotated[float, Field(ge=0.0, le=1.0)]
     risk_level: str
     sti_probabilities: Dict[str, float]
-    top_features: List[Dict[str, any]]
+    top_features: List[Dict[str, Any]]
     status: str
     triggered_at: datetime
     clinician_notes: Optional[str]
@@ -128,12 +128,12 @@ class PopulationSummaryOut(Schema):
 class SymptomDifferentialRequest(Schema):
     """Request symptom-driven differential diagnosis"""
     symptoms: List[str] = Field(..., min_length=1)
-    demographics: Dict[str, any]
+    demographics: Dict[str, Any]
     geographic_region: str
 
 class SymptomDifferentialOut(Schema):
     """Ranked STI differentials with probability scores"""
-    ranked_differentials: List[Dict[str, any]]
+    ranked_differentials: List[Dict[str, Any]]
     recommended_guidance_id: Optional[UUID]
     recommended_tests: List[str]
     urgency_level: Literal["routine", "urgent", "emergency"]

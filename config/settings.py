@@ -1,6 +1,13 @@
 
 from pathlib import Path
+import os
 
+# QGIS 4.0.2 GDAL paths
+GDAL_LIBRARY_PATH = r"C:\Users\USER\Desktop\QGIS 4.0.2\bin\gdal309.dll"
+GEOS_LIBRARY_PATH = r"C:\Users\USER\Desktop\QGIS 4.0.2\bin\geos_c.dll"
+
+# Add QGIS bin to PATH for dependencies
+os.environ['PATH'] = r"C:\Users\USER\Desktop\QGIS 4.0.2\bin;" + os.environ.get('PATH', '')
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -40,6 +47,11 @@ INSTALLED_APPS = [
     'compliance',
     'clinicians',
 ]
+
+# Patient session settings
+PATIENT_SESSION_TTL_HOURS = 24
+PATIENT_MAX_ASSESSMENTS_PER_HOUR = 3
+PATIENT_DATA_RETENTION_DAYS = 90  # Spec Section 5.2
 
 # Preprocessing defaults
 PREPROCESSING_DEFAULTS = {

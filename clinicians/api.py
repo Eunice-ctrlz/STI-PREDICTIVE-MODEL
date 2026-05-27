@@ -15,7 +15,7 @@ from .services import GuidanceService, AlertService, PopulationDashboardService,
 from .permissions import ClinicianAuth, RoleBasedAccess, require_verified_clinician
 from .models import ClinicianProfile, ClinicalGuidance, PatientRiskAlert, VerificationStatus
 
-api = NinjaAPI(title="STI Clinician API", version="1.0")
+api = NinjaAPI(title="STI Clinician API", version="1.0", urls_namespace="clinicians-api")
 router = Router()
 
 # Authentication instance

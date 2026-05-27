@@ -14,7 +14,7 @@ from .schema import (
 from .services import SpatialAnalyzer, FacilityFinder, GeospatialPrivacy
 from .models import GridCell, AggregatedIncident, HotspotAlert, HealthcareFacility, STIType
 
-api = NinjaAPI(title="STI Geospatial API", version="1.0")
+api = NinjaAPI(title="STI Geospatial API", version="1.0", urls_namespace="geospatial-api")
 router = Router()
 
 @router.post("/grid-cells", response=GridCellOut, tags=["Grid Management"])

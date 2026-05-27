@@ -8,8 +8,6 @@ from scipy.spatial.distance import cdist
 from sklearn.neighbors import KernelDensity
 from sklearn.cluster import DBSCAN
 
-from django.contrib.gis.geos import Point
-from django.contrib.gis.db.models.functions import Distance
 from django.db.models import Count, Avg, Sum, F
 
 from .models import GridCell, AggregatedIncident, HotspotAlert, HealthcareFacility, STIType, RiskLevel
@@ -471,35 +469,53 @@ class FacilityFinder:
                      max_distance_km: float = 50.0,
                      limit: int = 10) -> List[Dict]:
         """
-        Find nearest healthcare facilities using PostGIS.
+        Find nearest healthcare facilities using an in-memory haversine calculation.
         """
-        user_location = Point(lon, lat, srid=4326)
-        
         queryset = HealthcareFacility.objects.filter(
             is_active=True,
             is_moh_registered=True
-        ).annotate(
-            distance=Distance('location', user_location)
-        ).filter(
-            distance__lte=max_distance_km * 1000  # Convert km to meters
-        ).order_by('distance')[:limit]
+        )
         
         if sti_type:
             # Filter facilities offering specific STI testing
             queryset = queryset.filter(services__contains=[sti_type])
+
+        facilities = []
+        for facility in queryset:
+            distance_km = self._haversine_km(lat, lon, facility.lat, facility.lon)
+            if distance_km <= max_distance_km:
+                facilities.append((distance_km, facility))
+
+        facilities.sort(key=lambda item: item[0])
+        facilities = facilities[:limit]
         
         results = []
-        for facility in queryset:
+        for distance_km, facility in facilities:
             results.append({
                 "facility_id": facility.facility_id,
                 "name": facility.name,
                 "county": facility.county,
                 "sub_county": facility.sub_county,
-                "lat": facility.location.y,
-                "lon": facility.location.x,
+                "lat": facility.lat,
+                "lon": facility.lon,
                 "services": facility.services,
-                "distance_km": round(facility.distance.km, 2),
+                "distance_km": round(distance_km, 2),
                 "is_moh_registered": facility.is_moh_registered
             })
         
         return results
+
+    @staticmethod
+    def _haversine_km(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Compute distance between two coordinates in kilometers."""
+        if lat2 is None or lon2 is None:
+            return float("inf")
+
+        radius_km = 6371.0
+        lat1_rad, lon1_rad = np.radians([lat1, lon1])
+        lat2_rad, lon2_rad = np.radians([lat2, lon2])
+
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        a = np.sin(dlat / 2.0) ** 2 + np.cos(lat1_rad) * np.cos(lat2_rad) * np.sin(dlon / 2.0) ** 2
+        return float(2 * radius_km * np.arcsin(np.sqrt(a)))

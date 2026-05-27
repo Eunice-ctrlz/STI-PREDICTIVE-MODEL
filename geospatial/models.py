@@ -1,9 +1,4 @@
 from django.db import models
-
-# Create your models here.
-from django.db import models
-from django.contrib.gis.db import models as gis_models
-from django.contrib.gis.geos import Point
 import uuid
 
 class STIType(models.TextChoices):
@@ -36,9 +31,10 @@ class GridCell(models.Model):
     county = models.CharField(max_length=50, db_index=True)
     sub_county = models.CharField(max_length=50, db_index=True)
     
-    # Geometry for PostGIS queries
-    centroid = gis_models.PointField(srid=4326, geography=True)
-    boundary = gis_models.PolygonField(srid=4326, geography=True, null=True)
+    # Stored as plain latitude/longitude so the project can run without GIS libs
+    centroid_lat = models.FloatField(null=True, blank=True)
+    centroid_lon = models.FloatField(null=True, blank=True)
+    boundary = models.JSONField(null=True, blank=True)
     
     # Population context
     population_estimate = models.PositiveIntegerField(default=0)
@@ -55,14 +51,9 @@ class GridCell(models.Model):
         indexes = [
             models.Index(fields=["county", "sub_county"]),
             models.Index(fields=["grid_lat", "grid_lon"]),
-            gis_models.Index(fields=["centroid"]),
+            models.Index(fields=["centroid_lat", "centroid_lon"]),
         ]
         unique_together = [["grid_lat", "grid_lon"]]
-
-    def save(self, *args, **kwargs):
-        if not self.centroid:
-            self.centroid = Point(self.grid_lon, self.grid_lat, srid=4326)
-        super().save(*args, **kwargs)
 
 class AggregatedIncident(models.Model):
     """
@@ -158,7 +149,8 @@ class HealthcareFacility(models.Model):
     county = models.CharField(max_length=50, db_index=True)
     sub_county = models.CharField(max_length=50, db_index=True)
     
-    location = gis_models.PointField(srid=4326, geography=True)
+    lat = models.FloatField()
+    lon = models.FloatField()
     services = models.JSONField(default=list, help_text="List of STI testing services offered")
     operating_hours = models.JSONField(default=dict)
     contact_phone = models.CharField(max_length=20, blank=True)
@@ -171,6 +163,6 @@ class HealthcareFacility(models.Model):
     
     class Meta:
         indexes = [
-            gis_models.Index(fields=["location"]),
+            models.Index(fields=["lat", "lon"]),
             models.Index(fields=["county", "is_active"]),
         ]
