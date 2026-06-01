@@ -25,7 +25,7 @@ from .models import (
 )
 from .classifier import STIRiskClassifier, AUC_ROC_THRESHOLD, F1_THRESHOLD
 from .forecaster import OutbreakPatternPredictor, MAPE_THRESHOLD
-from .geospatial import GeospatialHotspotEngine
+from .geopatial import GeopatialHotspotEngine
 
 logger = logging.getLogger(__name__)
 

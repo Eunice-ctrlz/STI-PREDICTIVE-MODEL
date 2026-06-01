@@ -13,7 +13,7 @@ from .services import PreprocessingPipeline
 from .models import PreprocessingJob, ProcessingStatus, ProcessedRecord
 from .tasks import run_batch_preprocessing_task
 
-api = NinjaAPI(title="STI Preprocessing API", version="1.0", urls_namespace="preprocessing-api")
+api = NinjaAPI(title="STI Preprocessing API", version="1.0", urls_namespace="preprocessing")
 router = Router()
 
 @router.post("/process/single", response=ProcessedRecordOut, tags=["Real-time Processing"])

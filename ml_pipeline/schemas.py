@@ -1,5 +1,5 @@
 from ninja import Schema, Field
-from typing import List, Dict, Optional, Literal, Any
+from typing import List, Dict, Optional, Literal, Any,Annotated
 from uuid import UUID
 from datetime import date, datetime
 from pydantic import confloat, conint
@@ -12,37 +12,37 @@ from pydantic import confloat, conint
 class ClassifierHyperparameters(Schema):
     """XGBoost + Random Forest ensemble hyperparameters"""
     # XGBoost
-    xgb_n_estimators: conint(ge=100, le=2000) = 500
-    xgb_max_depth: conint(ge=2, le=12) = 6
-    xgb_learning_rate: confloat(gt=0.0, le=0.5) = 0.05
-    xgb_subsample: confloat(ge=0.5, le=1.0) = 0.8
-    xgb_colsample_bytree: confloat(ge=0.5, le=1.0) = 0.8
-    xgb_scale_pos_weight: Optional[float] = None  # Auto-computed from class dist if None
+    xgb_n_estimators: Annotated[int, Field(ge=100, le=2000)] = 500
+    xgb_max_depth: Annotated[int, Field(ge=2, le=12)] = 6
+    xgb_learning_rate: Annotated[float, Field(gt=0.0, le=0.5)] = 0.05
+    xgb_subsample: Annotated[float, Field(ge=0.5, le=1.0)] = 0.8
+    xgb_colsample_bytree: Annotated[float, Field(ge=0.5, le=1.0)] = 0.8
+    xgb_scale_pos_weight: Optional[Annotated[float, Field(ge=0.0)]] = None  # Auto-computed from class dist if None
 
     # Random Forest
-    rf_n_estimators: conint(ge=50, le=1000) = 200
-    rf_max_depth: Optional[int] = None  # None = unlimited
-    rf_min_samples_split: conint(ge=2, le=20) = 4
+    rf_n_estimators: Annotated[int, Field(ge=50, le=1000)] = 200
+    rf_max_depth: Optional[Annotated[int, Field(ge=1, le=10)]] = None  # None = unlimited
+    rf_min_samples_split: Annotated[int, Field(ge=2, le=20)] = 4
 
     # Voting ensemble weights
-    ensemble_weight_xgb: confloat(ge=0.0, le=1.0) = 0.6
-    ensemble_weight_rf: confloat(ge=0.0, le=1.0) = 0.4
+    ensemble_weight_xgb: Annotated[float, Field(ge=0.0, le=1.0)] = 0.6
+    ensemble_weight_rf: Annotated[float, Field(ge=0.0, le=1.0)] = 0.4
 
     # Threshold tuning
-    decision_threshold: confloat(ge=0.1, le=0.9) = 0.5
-    clinical_alert_threshold: confloat(ge=0.5, le=0.95) = 0.7
+    decision_threshold: Annotated[float, Field(ge=0.1, le=0.9)] = 0.5
+    clinical_alert_threshold: Annotated[float, Field(ge=0.5, le=0.95)] = 0.7
 
 
 class LSTMHyperparameters(Schema):
     """LSTM pattern predictor hyperparameters"""
-    hidden_size: conint(ge=32, le=512) = 128
-    num_layers: conint(ge=1, le=4) = 2
-    dropout: confloat(ge=0.0, le=0.5) = 0.2
-    learning_rate: confloat(gt=0.0, le=0.1) = 0.001
-    batch_size: conint(ge=8, le=256) = 32
-    epochs: conint(ge=10, le=500) = 100
-    sequence_length: conint(ge=6, le=60) = 24  # months of look-back
-    early_stopping_patience: conint(ge=3, le=30) = 10
+    hidden_size: Annotated[int, Field(ge=32, le=512)] = 128
+    num_layers: Annotated[int, Field(ge=1, le=4)] = 2
+    dropout: Annotated[float, Field(ge=0.0, le=0.5)] = 0.2
+    learning_rate: Annotated[float, Field(gt=0.0, le=0.1)] = 0.001
+    batch_size: Annotated[int, Field(ge=8, le=256)] = 32
+    epochs: Annotated[int, Field(ge=10, le=500)] = 100
+    sequence_length: Annotated[int, Field(ge=6, le=60)] = 24  # months of look-back
+    early_stopping_patience: Annotated[int, Field(ge=3, le=30)] = 10
 
 
 class TrainingJobRequest(Schema):
@@ -155,12 +155,12 @@ class InferenceRequest(Schema):
     anonymous_id: str = Field(..., min_length=32, max_length=64)
     # Feature vector as produced by PreprocessingPipeline.process_single_record()
     symptom_vector: List[int] = Field(..., min_length=32, max_length=32)
-    composite_risk_score: confloat(ge=0.0, le=1.0)
-    age_encoded: int
-    sex_encoded: int
-    region_encoded: int
-    temporal_features: Dict[str, float]
-    behavioural_embedding: List[float]
+    composite_risk_score: Annotated[float, Field(ge=0.0, le=1.0)] = Field(..., ge=0.0, le=1.0)  # (ge=0.0, le=1.0)
+    age_encoded: Annotated[int, Field(ge=13, le=100)]
+    sex_encoded: Annotated[int, Field(ge=0, le=2)]
+    region_encoded: Annotated[int, Field(ge=0, le=10)]
+    temporal_features: Dict[str, Annotated[float, Field(ge=0.0, le=1.0)]]
+    behavioural_embedding: List[Annotated[float, Field(ge=0.0, le=1.0)]]
     prior_sti_history: List[str] = Field(default_factory=list)
     compute_shap: bool = True
 
@@ -172,7 +172,7 @@ class InferenceRequest(Schema):
 class ForecastRequest(Schema):
     county: str = Field(..., min_length=1, max_length=50)
     sti_type: Literal["hiv", "chlamydia", "syphilis", "gonorrhoea", "hpv", "hsv2", "all"] = "all"
-    baseline_months: conint(ge=12, le=60) = 60  # months of historical data to use
+    baseline_months: Annotated[int, Field(ge=12, le=60)] = 60  # months of historical data to use
 
 
 class HorizonForecast(Schema):

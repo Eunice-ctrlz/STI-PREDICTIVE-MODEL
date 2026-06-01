@@ -1,9 +1,9 @@
 from ninja import Router, NinjaAPI
+from django.shortcuts import get_object_or_404
 from typing import List, Optional
-from datetime import date
+from datetime import date, datetime
+from uuid import UUID
 import uuid
-from django.utils import timezone
-from geospatial.services import FacilityFinder
 
 from .schemas import (
     SessionCreate, SessionOut, SessionResume,
@@ -17,8 +17,13 @@ from .services import (
     ReminderService, ResultTrackingService
 )
 from .models import AnonymousSession, PatientAssessment, SessionStatus, PatientEducationContent
+from django.utils import timezone
 
-api = NinjaAPI(title="STI Patient Dashboard API", version="1.0", urls_namespace="patients-api")
+api = NinjaAPI(
+    title="STI Patient Dashboard API",
+    version="1.0",
+    urls_namespace="patients"
+)
 router = Router()
 
 # --- Session Management ---
@@ -173,6 +178,7 @@ def submit_assessment(request, payload: AssessmentRequest):
     )
     
     # Find nearest clinics
+    from geospatial.services import FacilityFinder
     facility_finder = FacilityFinder()
     clinics = facility_finder.find_nearest(
         lat=-1.2921,  # Would use county centroid in production

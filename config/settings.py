@@ -48,10 +48,22 @@ INSTALLED_APPS = [
     'clinicians',
 ]
 
+
+REPORTING = {
+    'WHO_COUNTRY_CODE': 'KEN',
+    'WHO_SUBMISSION_ENDPOINT': 'https://who.example.com/surveillance',  # Placeholder
+    'AUTO_GENERATE_WEEKLY': True,
+    'RETENTION_REPORTS_DAYS': 2555,  # 7 years
+}
 # Patient session settings
 PATIENT_SESSION_TTL_HOURS = 24
 PATIENT_MAX_ASSESSMENTS_PER_HOUR = 3
 PATIENT_DATA_RETENTION_DAYS = 90  # Spec Section 5.2
+
+# JWT settings for clinician auth
+JWT_SECRET_KEY = os.getenv('JWT_SECRET_KEY', 'your-secret-key-change-in-production')
+JWT_ALGORITHM = 'HS256'
+JWT_EXPIRATION_HOURS = 24
 
 # Preprocessing defaults
 PREPROCESSING_DEFAULTS = {
@@ -104,6 +116,18 @@ CELERY_BEAT_SCHEDULE = {
     'generate-weekly-heatmaps': {
         'task': 'geospatial.tasks.generate_weekly_heatmaps',
         'schedule': 604800.0,  # 7 days in seconds
+    },
+     'quarterly-bias-audit': {
+        'task': 'compliance.tasks.quarterly_bias_audit',
+        'schedule': 7776000.0,  # 90 days
+    },
+    'daily-retention': {
+        'task': 'compliance.tasks.daily_retention_enforcement',
+        'schedule': 86400.0,  # 1 day
+    },
+    'annual-validation-review': {
+        'task': 'compliance.tasks.annual_validation_review',
+        'schedule': 31536000.0,  # 365 days
     },
 }
 

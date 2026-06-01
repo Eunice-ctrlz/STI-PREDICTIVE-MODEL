@@ -30,7 +30,7 @@ from .tasks import (
     train_pattern_predictor_task,
     train_geospatial_engine_task,
 )
-from .registry import ModelRegistry
+from .regestry import ModelRegistry
 
 router = Router()
 

@@ -35,7 +35,7 @@ from .models import (
     IngestionJob, IngestionStatus, RawRecord, RecordStatus,
     GeoRecord, DataSourceConfig, DataSourceType, SyncAuditLog,
 )
-from .schemas import (
+from .schema import (
     WHOSurveillanceRecord, MOHFHIRBundle, GeoGridCell,
     PatientFormSubmission, ConflictResolutionPolicy,
 )
