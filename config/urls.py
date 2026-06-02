@@ -9,10 +9,10 @@ from moh_reporting.api import api as reporting_api
 from clinicians.api import api as clinicians_api
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/v1/', preprocessing_api.urls),
-    path('api/v1/', geospatial_api.urls),
-    path('api/v1/', patients_api.urls),
-    path('api/v1/', compliance_api.urls),
-    path('api/v1/', reporting_api.urls),
-    path('api/v1/', clinicians_api.urls),
+    path('api/v1/preprocessing/', preprocessing_api.urls),
+    path('api/v1/geospatial/', geospatial_api.urls),
+    path('api/v1/patients/', patients_api.urls),
+    path('api/v1/compliance/', compliance_api.urls),
+    path('api/v1/reporting/', reporting_api.urls),
+    path('api/v1/clinicians/', clinicians_api.urls),
 ]

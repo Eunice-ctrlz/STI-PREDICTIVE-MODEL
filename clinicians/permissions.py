@@ -1,5 +1,6 @@
 from ninja.security import HttpBearer
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError
 from django.contrib.auth.models import User
 from .models import ClinicianProfile, VerificationStatus
 
@@ -29,7 +30,7 @@ class ClinicianAuth(HttpBearer):
             request.clinician_profile = profile
             return user
             
-        except (JWTError, User.DoesNotExist):
+        except (PyJWTError, User.DoesNotExist):
             return None
 
 class RoleBasedAccess:

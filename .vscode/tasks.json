@@ -1,0 +1,158 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "run-django-api",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "run-django-api",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "install-django-ninja",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+			"args": [
+				"-m",
+				"pip",
+				"install",
+				"django-ninja"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "run-django-api",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\AppData\\Local\\Programs\\Python\\Python312\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "run-django-api-venv",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "install-backend-ml-deps",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"pip",
+				"install",
+				"pandas",
+				"scikit-learn"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "run-django-api-venv",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "check-venv-imports",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-c",
+				"import sys; import pandas, ninja; print(sys.executable); print(pandas.__version__); print(ninja.__version__)"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "check-pandas-venv",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-c",
+				"import pandas, sys; print(sys.executable); print(pandas.__version__)"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "run-django-api-clean",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		},
+		{
+			"label": "install-python-jose",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"-m",
+				"pip",
+				"install",
+				"python-jose"
+			],
+			"isBackground": true,
+			"problemMatcher": []
+		},
+		{
+			"label": "run-django-api-final",
+			"type": "shell",
+			"command": "C:\\Users\\USER\\Desktop\\STI-PROJECT\\.venv\\Scripts\\python.exe",
+			"args": [
+				"manage.py",
+				"runserver",
+				"8000"
+			],
+			"isBackground": true,
+			"problemMatcher": [],
+			"group": "build"
+		}
+	]
+}
