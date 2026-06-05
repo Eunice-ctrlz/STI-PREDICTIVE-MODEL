@@ -344,4 +344,4 @@ def get_pending_reminders(request, session_id: str):
     ]
 
 # Register router
-api.add_router("/patients/", router)
+api.add_router("/", router)

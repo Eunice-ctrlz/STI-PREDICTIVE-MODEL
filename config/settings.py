@@ -36,7 +36,6 @@ INSTALLED_APPS = [
 
     'ninja',
     'rest_framework',
-    'corsheaders',
     'preprocessing',
     'ml_pipeline',
     'geospatial',
@@ -49,19 +48,6 @@ INSTALLED_APPS = [
 ]
 
 
-MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Add at the top
-    'django.middleware.common.CommonMiddleware',
-    ...
-]
-
-# For development only - restrict in production
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-]
-
-CORS_ALLOW_CREDENTIALS = True
 
 REPORTING = {
     'WHO_COUNTRY_CODE': 'KEN',

@@ -8,3 +8,4 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 )
+localStorage.setItem('clinician_token', 'dev-token-123');

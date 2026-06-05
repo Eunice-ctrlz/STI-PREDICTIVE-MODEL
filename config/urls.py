@@ -15,4 +15,4 @@ urlpatterns = [
     path('api/v1/compliance/', compliance_api.urls),
     path('api/v1/reporting/', reporting_api.urls),
     path('api/v1/clinicians/', clinicians_api.urls),
-]
+]   

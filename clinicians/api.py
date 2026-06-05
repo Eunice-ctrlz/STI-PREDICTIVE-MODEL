@@ -341,5 +341,5 @@ def get_audit_trail(request, anonymous_id: Optional[str] = None,
         for l in logs
     ]
 
-# Register router
-api.add_router("/clinicians/", router)
+# Register router — FIXED: removed "/clinicians/" prefix to avoid duplication
+api.add_router("", router)

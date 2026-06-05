@@ -1,52 +1,52 @@
 // src/services/api.ts
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
-
-interface ApiResponse<T> {
+const API_BASE_URL = import.meta.env.DEV ? "/api/v1" : (import.meta.env.VITE_API_URL ?? "");
+console.log("API_BASE_URL:", JSON.stringify(API_BASE_URL));
+export interface ApiResponse<T> {
   data: T;
   status: number;
 }
 
-interface ApiError {
-  detail: string;
-  status: number;
+export interface ApiErrorResponse {
+  detail?: string;
+  message?: string;
 }
 
 class ApiClient {
-  private baseUrl: string;
-  private token: string | null;
+  constructor(private readonly baseUrl: string) {}
 
-  constructor(baseUrl: string) {
-    // Remove trailing slash to avoid double slashes when concatenating
-    this.baseUrl = baseUrl.replace(/\/+$/, '');
-    this.token = localStorage.getItem('clinician_token');
+  private get token(): string | null {
+    return localStorage.getItem("clinician_token");
   }
 
-  setToken(token: string) {
-    this.token = token;
-    localStorage.setItem('clinician_token', token);
+  setToken(token: string): void {
+    localStorage.setItem("clinician_token", token);
   }
 
-  clearToken() {
-    this.token = null;
-    localStorage.removeItem('clinician_token');
+  clearToken(): void {
+    localStorage.removeItem("clinician_token");
+  }
+
+  private buildUrl(endpoint: string): string {
+    const cleanBase = this.baseUrl.replace(/\/+$/, "");
+    const cleanEndpoint = endpoint.startsWith("/") ? endpoint : `/${endpoint}`;
+    return `${cleanBase}${cleanEndpoint}`;
   }
 
   private async request<T>(
     endpoint: string,
     options: RequestInit = {}
-  ): Promise<<ApiResponse<T>> {
-    // Ensure endpoint starts with /
-    const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
-    const url = `${this.baseUrl}${cleanEndpoint}`;
-    
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...options.headers as Record<string, string>,
-    };
+  ): Promise<ApiResponse<T>> {
+    const url = this.buildUrl(endpoint);
+
+    const headers = new Headers(options.headers);
+
+    if (!headers.has("Content-Type") && options.body) {
+      headers.set("Content-Type", "application/json");
+    }
 
     if (this.token) {
-      headers['Authorization'] = `Bearer ${this.token}`;
+      headers.set("Authorization", `Bearer ${this.token}`);
     }
 
     const response = await fetch(url, {
@@ -54,32 +54,69 @@ class ApiClient {
       headers,
     });
 
-    if (!response.ok) {
-      const error: ApiError = await response.json();
-      throw new Error(error.detail || `HTTP ${response.status}`);
+    if (response.status === 401) {
+      this.clearToken();
     }
 
-    const data = await response.json();
-    return { data, status: response.status };
+    // ✅ Fixed — clone response so we can read it twice if needed
+    if (!response.ok) {
+    let message = `HTTP ${response.status}`;
+    const clonedResponse = response.clone();
+    try {
+      const error: ApiErrorResponse = await response.json();
+      message = error.detail || error.message || message;
+    } catch {
+      const text = await clonedResponse.text();
+    if (text) message = text;
+    }
+    throw new Error(message);
+    }
+    if (
+      response.status === 204 ||
+      response.headers.get("content-length") === "0"
+    ) {
+      return { data: null as T, status: response.status };
+    }
+
+    const contentType = response.headers.get("content-type");
+    if (contentType?.includes("application/json")) {
+      const data = await response.json();
+      return { data, status: response.status };
+    }
+
+    const text = await response.text();
+    return { data: text as T, status: response.status };
   }
 
-  async get<T>(endpoint: string): Promise<<ApiResponse<T>> {
-    return this.request<T>(endpoint, { method: 'GET' });
+  async get<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: "GET" });
   }
 
-  async post<T>(endpoint: string, body: unknown): Promise<<ApiResponse<T>> {
+  async post<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'POST',
-      body: JSON.stringify(body),
+      method: "POST",
+      body: body ? JSON.stringify(body) : undefined,
     });
   }
 
-  async put<T>(endpoint: string, body: unknown): Promise<<ApiResponse<T>> {
+  async put<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
     return this.request<T>(endpoint, {
-      method: 'PUT',
-      body: JSON.stringify(body),
+      method: "PUT",
+      body: body ? JSON.stringify(body) : undefined,
     });
+  }
+
+  async patch<T>(endpoint: string, body?: unknown): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, {
+      method: "PATCH",
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  }
+
+  async delete<T>(endpoint: string): Promise<ApiResponse<T>> {
+    return this.request<T>(endpoint, { method: "DELETE" });
   }
 }
 
 export const api = new ApiClient(API_BASE_URL);
+export default api;
