@@ -26,12 +26,23 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-
-    'rest_framework',
+    
+     'ninja',
     'corsheaders',
+
+
+    'patients',
+    'clinicians',
+    'prediction_engine',
     'preprocessing',
     'ml_pipeline',
+    'data_ingestion',
+    'geospatial',
+    'moh_reporting',
+    'compliance',
+
+    'rest_framework',
+
 ]
 
 MIDDLEWARE = [
@@ -71,6 +82,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+
     }
 }
 
@@ -110,3 +122,9 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+# Media files for model artifacts
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Default primary key
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
