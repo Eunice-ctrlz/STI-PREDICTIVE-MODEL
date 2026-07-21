@@ -1,0 +1,90 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  body {
+    @apply bg-background text-primary;
+  }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface rounded-2xl shadow-card border border-border transition-shadow duration-200;
+  }
+  .card:hover {
+    @apply shadow-card-hover;
+  }
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl transition-all duration-200 hover:bg-primary-light active:scale-[0.98];
+  }
+  .btn-accent {
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-white font-medium rounded-xl transition-all duration-200 hover:bg-accent-light active:scale-[0.98];
+  }
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-muted font-medium rounded-xl transition-all duration-200 hover:bg-gray-100 active:scale-[0.98];
+  }
+  .input-field {
+    @apply w-full px-4 py-2.5 bg-white border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all;
+  }
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 transition-all duration-200 hover:bg-white/5 hover:text-white;
+  }
+  .nav-link.active {
+    @apply bg-white/10 text-white;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
+  }
+  .badge-green {
+    @apply bg-emerald-50 text-emerald-700 border border-emerald-200;
+  }
+  .badge-yellow {
+    @apply bg-amber-50 text-amber-700 border border-amber-200;
+  }
+  .badge-orange {
+    @apply bg-orange-50 text-orange-700 border border-orange-200;
+  }
+  .badge-red {
+    @apply bg-red-50 text-red-700 border border-red-200;
+  }
+  .badge-blue {
+    @apply bg-blue-50 text-blue-700 border border-blue-200;
+  }
+  .stat-card {
+    @apply card p-6;
+  }
+  .page-header {
+    @apply flex items-center justify-between mb-6;
+  }
+  .page-title {
+    @apply text-2xl font-bold text-primary;
+  }
+}
+
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
+
+/* Leaflet map styling */
+.leaflet-container {
+  border-radius: 1rem;
+  z-index: 1;
+}

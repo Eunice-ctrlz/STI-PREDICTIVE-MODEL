@@ -1,0 +1,31 @@
+{
+  "model_type": "Random Forest Classifier",
+  "feature_names": [
+    "age",
+    "gender_male",
+    "gender_female",
+    "gender_other",
+    "num_partners_12m",
+    "num_partners_lifetime",
+    "condom_use_freq",
+    "substance_use",
+    "prior_sti_history",
+    "hiv_positive",
+    "hiv_unknown",
+    "symptoms_present",
+    "marital_single",
+    "marital_married",
+    "marital_divorced",
+    "marital_cohabiting"
+  ],
+  "trained_at": "2026-07-16T08:31:17.879025+00:00",
+  "training_samples": 8000,
+  "data_source": "synthetic (placeholder \u2014 replace with KDHS Individual Recode once approved)",
+  "test_metrics": {
+    "auc_roc": 0.7743,
+    "accuracy": 0.8163,
+    "f1_score": 0.428,
+    "precision": 0.3503,
+    "recall": 0.55
+  }
+}

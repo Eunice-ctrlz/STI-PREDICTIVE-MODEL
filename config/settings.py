@@ -1,9 +1,26 @@
 
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+import os
+from pathlib import Path
 
+BASE_DIR = Path(__file__).resolve().parent.parent
+FRONTEND_DIR = BASE_DIR / 'frontend'
+
+if os.name == "nt":
+    OSGEO4W = r"C:\OSGeo4W"
+    os.environ["OSGEO4W_ROOT"] = OSGEO4W
+    os.environ["GDAL_DATA"] = OSGEO4W + r"\share\gdal"
+    os.environ["PROJ_LIB"] = OSGEO4W + r"\share\proj"
+    os.environ["PATH"] = OSGEO4W + r"\bin;" + os.environ["PATH"]
+
+    # Required on Python 3.8+ — PATH alone doesn't let ctypes resolve
+    # a DLL's own dependencies, so we register the dir explicitly
+    if hasattr(os, "add_dll_directory"):
+        os.add_dll_directory(OSGEO4W + r"\bin")
+
+    GDAL_LIBRARY_PATH = OSGEO4W + r"\bin\gdal313.dll"
+    GEOS_LIBRARY_PATH = OSGEO4W + r"\bin\geos_c.dll"
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -30,11 +47,22 @@ INSTALLED_APPS = [
 
     'rest_framework',
     'corsheaders',
+    'patients',
+    'prediction_engine',
+    'clinicians',
+    'geospatial',
+    'moh_reporting',
+    'compliance',
+    'data_ingestion',
     'preprocessing',
     'ml_pipeline',
+    
 ]
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -49,7 +77,7 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [FRONTEND_DIR],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -110,3 +138,10 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_URL = '/media/'

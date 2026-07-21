@@ -1,7 +1,14 @@
 #!/usr/bin/env python
 """Django's command-line utility for administrative tasks."""
 import os
+if os.name == "nt":
+    OSGEO4W = r"C:\OSGeo4W"
+    os.add_dll_directory(OSGEO4W + r"\bin")
+    from ctypes import CDLL
+    CDLL(OSGEO4W + r"\bin\gdal313.dll")  # force-load GDAL before anything else can grab conflicting DLLs
+
 import sys
+
 
 
 def main():
