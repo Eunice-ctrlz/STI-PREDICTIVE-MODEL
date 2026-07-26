@@ -47,6 +47,7 @@ def predict_risk(request, payload: PredictionRequestSchema):
         model_name=result['model_name'],
         recommended_tests=result['recommended_tests'],
         recommended_actions=result['recommended_actions'],
+        likely_stis=result.get('likely_stis', []),
     )
 
     return prediction
@@ -127,3 +128,11 @@ def get_model_performance(request, model_version: Optional[str] = None):
     if model_version:
         qs = qs.filter(model_version=model_version)
     return list(qs.values().order_by('-evaluated_on')[:10])
+
+
+# NOTE: This catch-all route MUST be last to avoid shadowing named routes like
+# /stats, /history, /performance that would otherwise match as integers.
+@router.get("/{prediction_id}", response=PredictionResultSchema)
+def get_prediction(request, prediction_id: int):
+    """Retrieve a single saved prediction by its primary key (called by PredictionResult.jsx)."""
+    return get_object_or_404(RiskPrediction, id=prediction_id)

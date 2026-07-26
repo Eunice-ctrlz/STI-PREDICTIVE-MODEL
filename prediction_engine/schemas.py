@@ -22,6 +22,7 @@ class PredictionResultSchema(Schema):
     top_risk_factors: Dict
     recommended_tests: List[str]
     recommended_actions: str
+    likely_stis: List[str] = []
     model_version: str
     model_name: str
     validated_by_clinician: bool

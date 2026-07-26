@@ -51,20 +51,40 @@ def get_heatmap_data(request, county: Optional[str] = None, days: int = 90):
         'Mombasa': (-4.0435, 39.6682),
         'Kisumu': (-0.0917, 34.7680),
         'Nakuru': (-0.3031, 36.0800),
+        'Kiambu': (-1.1714, 36.8356),
+        'Uasin Gishu': (0.5143, 35.2697),
+        'Kajiado': (-1.8500, 36.7833),
+        'Machakos': (-1.5167, 37.2667),
+        'Nyeri': (-0.4167, 36.9500),
+        'Kilifi': (-3.6333, 39.8500),
+        'Kakamega': (0.2833, 34.7500),
+        'Kisii': (-0.6817, 34.7717),
+        'Meru': (0.0500, 37.6500),
+        'Garissa': (-0.4532, 39.6461),
+        'Turkana': (3.1167, 35.6000),
     }
     
     results = []
     for item in qs[:50]:
         county_name = item['patient__county'] or 'Unknown'
-        lat, lng = county_coords.get(county_name, (-0.5, 37.0))
+        base_lat, base_lng = county_coords.get(county_name, (-0.5, 37.0))
         
+        # Apply jitter based on county and sub-county to avoid perfect overlapping of dots
+        jitter_lat = base_lat + (hash(county_name) % 1000) / 10000
+        jitter_lng = base_lng + (hash(item['patient__sub_county'] or '') % 1000) / 10000
+        avg_risk = round(float(item['avg_risk']), 3)
+
         results.append({
-            'lat': lat + (hash(county_name) % 1000) / 10000,  # slight jitter
-            'lng': lng + (hash(item['patient__sub_county'] or '') % 1000) / 10000,
-            'intensity': round(float(item['avg_risk']), 3),
+            'lat': jitter_lat,
+            'lng': jitter_lng,
+            'latitude': jitter_lat,
+            'longitude': jitter_lng,
+            'intensity': avg_risk,
+            'avg_risk_score': avg_risk,
             'county': county_name,
             'sub_county': item['patient__sub_county'] or '',
             'patient_count': item['patient_count'],
+            'total_patients': item['patient_count'],
             'high_risk_count': item['high_risk_count'],
         })
     

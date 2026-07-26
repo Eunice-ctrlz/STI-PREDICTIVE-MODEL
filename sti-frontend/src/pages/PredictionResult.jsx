@@ -125,23 +125,54 @@ export default function PredictionResult() {
                     <Activity className="w-4 h-4 text-accent" />
                     Top Risk Factors
                 </h3>
-                <div className="space-y-4">
-                    {Object.entries(result.top_risk_factors || {}).map(([factor, importance]) => (
-                        <div key={factor}>
-                            <div className="flex justify-between text-sm mb-1.5">
-                                <span className="capitalize text-primary">{factor.replace(/_/g, ' ')}</span>
-                                <span className="font-semibold text-primary">{(importance * 100).toFixed(1)}%</span>
+            <div className="space-y-4">
+                    {Object.entries(result.top_risk_factors || {}).map(([factor, importance]) => {
+                        const isNumeric = typeof importance === 'number';
+                        const pct = isNumeric ? Math.min(importance * 100, 100) : 0;
+                        return (
+                            <div key={factor}>
+                                <div className="flex justify-between text-sm mb-1.5">
+                                    <span className="capitalize text-primary">{factor.replace(/_/g, ' ')}</span>
+                                    {isNumeric ? (
+                                        <span className="font-semibold text-primary">{pct.toFixed(1)}%</span>
+                                    ) : (
+                                        <span className="text-xs text-muted italic">{importance}</span>
+                                    )}
+                                </div>
+                                {isNumeric && (
+                                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                        <div
+                                            className="h-full bg-accent rounded-full transition-all duration-700"
+                                            style={{ width: `${pct}%` }}
+                                        />
+                                    </div>
+                                )}
                             </div>
-                            <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-                                <div
-                                    className="h-full bg-accent rounded-full transition-all duration-700"
-                                    style={{ width: `${Math.min(importance * 300, 100)}%` }}
-                                />
-                            </div>
-                        </div>
-                    ))}
+                        );
+                    })}
                 </div>
             </div>
+
+            {/* Most Likely STIs */}
+            {result.likely_stis && result.likely_stis.length > 0 && (
+                <div className="card p-6 border-l-4 border-l-orange-500">
+                    <h3 className="text-sm font-semibold text-primary mb-3 flex items-center gap-2">
+                        <AlertTriangle className="w-4 h-4 text-orange-500" />
+                        Most Likely STI Infections
+                    </h3>
+                    <p className="text-xs text-muted mb-4">
+                        Based on the patient's symptoms, behavior, and demographics, these are the most likely specific STIs to screen for:
+                    </p>
+                    <div className="flex flex-wrap gap-2.5">
+                        {result.likely_stis.map((sti) => (
+                            <span key={sti} className="px-4 py-2 bg-orange-50 border border-orange-200 text-orange-800 rounded-xl text-sm font-semibold flex items-center gap-1.5 shadow-sm">
+                                <span className="w-2 h-2 rounded-full bg-orange-500 animate-pulse" />
+                                {sti}
+                            </span>
+                        ))}
+                    </div>
+                </div>
+            )}
 
             {/* Recommendations */}
             <div className="card p-6">

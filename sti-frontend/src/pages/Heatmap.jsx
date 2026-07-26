@@ -30,10 +30,9 @@ export default function Heatmap() {
   }
 
   const getMarkerColor = (riskScore) => {
-    if (riskScore > 0.4) return '#ef4444' // Red
-    if (riskScore > 0.3) return '#f97316' // Orange
-    if (riskScore > 0.2) return '#f59e0b' // Yellow
-    return '#10b981' // Green
+    if (riskScore >= 0.5) return '#ef4444' // Red (Highest Risk)
+    if (riskScore >= 0.25) return '#eab308' // Yellow (Moderate Risk)
+    return '#10b981' // Green (Fewest/Lowest Risk)
   }
 
   return (
@@ -48,12 +47,12 @@ export default function Heatmap() {
 
       <div className="grid lg:grid-cols-4 gap-6 flex-1 min-h-[500px]">
         <div className="lg:col-span-3 card overflow-hidden relative">
-          <div className="absolute top-4 right-4 z-[1000] bg-white p-2 rounded-lg shadow-md border border-border">
+          <div className="absolute top-4 right-4 z-[1000] bg-white p-2.5 rounded-lg shadow-md border border-border">
             <h4 className="text-xs font-semibold mb-2">Risk Levels</h4>
             <div className="space-y-1 text-xs">
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500 opacity-60"></div>High (>40%)</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-orange-500 opacity-60"></div>Moderate (>30%)</div>
-              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500 opacity-60"></div>Low (>20%)</div>
+              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-red-500 opacity-60"></div>Highest Risk (&ge;50%)</div>
+              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-yellow-500 opacity-60"></div>Moderate Risk (25% - 49%)</div>
+              <div className="flex items-center gap-2"><div className="w-3 h-3 rounded-full bg-emerald-500 opacity-60"></div>Lowest Risk (&lt;25%)</div>
             </div>
           </div>
           

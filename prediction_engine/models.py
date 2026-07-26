@@ -44,6 +44,7 @@ class RiskPrediction(models.Model):
     # Recommendations
     recommended_tests = models.JSONField(default=list, blank=True)
     recommended_actions = models.TextField(blank=True)
+    likely_stis = models.JSONField(default=list, blank=True)
     
     # Validation
     validated_by_clinician = models.BooleanField(default=False)
