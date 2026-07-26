@@ -43,10 +43,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-
-
-    'rest_framework',
+    
+     'ninja',
     'corsheaders',
+
     'patients',
     'prediction_engine',
     'clinicians',
@@ -57,6 +57,22 @@ INSTALLED_APPS = [
     'preprocessing',
     'ml_pipeline',
     
+
+
+
+    'patients',
+    'clinicians',
+    'prediction_engine',
+    'preprocessing',
+    'ml_pipeline',
+    'data_ingestion',
+    'geospatial',
+    'moh_reporting',
+    'compliance',
+
+    'rest_framework',
+
+
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -99,6 +115,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+
     }
 }
 
@@ -139,9 +156,18 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
 MEDIA_ROOT = BASE_DIR / 'media'
 MEDIA_URL = '/media/'
+
+# Media files for model artifacts
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# Default primary key
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+

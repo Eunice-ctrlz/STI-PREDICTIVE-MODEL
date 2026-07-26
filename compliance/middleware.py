@@ -1,79 +1,73 @@
-from django.db import models
-from django.contrib.auth.models import User
+"""
+Audit log middleware - logs all API requests.
+"""
+import json
+from .models import AuditLog
 
 
-class AuditLog(models.Model):
-    ACTION_TYPES = [
-        ('create', 'Create'),
-        ('read', 'Read'),
-        ('update', 'Update'),
-        ('delete', 'Delete'),
-        ('predict', 'Prediction'),
-        ('export', 'Data Export'),
-        ('login', 'Login'),
-        ('logout', 'Logout'),
-    ]
+class AuditLogMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
     
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
-    user_name = models.CharField(max_length=100, blank=True)
-    action = models.CharField(max_length=20, choices=ACTION_TYPES)
+    def __call__(self, request):
+        # Skip static/media
+        if request.path.startswith(('/static/', '/media/', '/admin/jsi18n/')):
+            return self.get_response(request)
+        
+        response = self.get_response(request)
+        
+        # Log the request
+        try:
+            user = request.user if request.user.is_authenticated else None
+            user_name = user.get_full_name() or user.username if user else 'Anonymous'
+            
+            # Determine action type from method and path
+            action = self._get_action(request.method, request.path)
+            
+            AuditLog.objects.create(
+                user=user,
+                user_name=user_name,
+                action=action,
+                resource_type=self._get_resource_type(request.path),
+                description=f"{request.method} {request.path}",
+                ip_address=self._get_client_ip(request),
+                user_agent=request.META.get('HTTP_USER_AGENT', '')[:500],
+            )
+        except Exception:
+            pass  # Don't break requests if logging fails
+        
+        return response
     
-    # What was affected
-    resource_type = models.CharField(max_length=50)  # e.g., 'Patient', 'Prediction'
-    resource_id = models.CharField(max_length=100, blank=True)
+    def _get_action(self, method, path):
+        if 'predict' in path:
+            return 'predict'
+        if 'login' in path:
+            return 'login'
+        if 'logout' in path:
+            return 'logout'
+        if 'export' in path or 'report' in path:
+            return 'export'
+        if method == 'POST':
+            return 'create'
+        if method in ('PUT', 'PATCH'):
+            return 'update'
+        if method == 'DELETE':
+            return 'delete'
+        return 'read'
     
-    # Details
-    description = models.TextField(blank=True)
-    ip_address = models.GenericIPAddressField(null=True, blank=True)
-    user_agent = models.TextField(blank=True)
+    def _get_resource_type(self, path):
+        if 'patients' in path:
+            return 'Patient'
+        if 'predictions' in path:
+            return 'Prediction'
+        if 'clinicians' in path:
+            return 'Clinician'
+        if 'reports' in path:
+            return 'Report'
+        return 'Unknown'
     
-    # Before/After for updates
-    previous_state = models.JSONField(default=dict, blank=True)
-    new_state = models.JSONField(default=dict, blank=True)
-    
-    # Consent tracking
-    consent_obtained = models.BooleanField(default=False)
-    consent_type = models.CharField(max_length=50, blank=True)
-    
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        ordering = ['-created_at']
-        indexes = [
-            models.Index(fields=['user', 'action', 'created_at']),
-            models.Index(fields=['resource_type', 'resource_id']),
-        ]
-    
-    def __str__(self):
-        return f"{self.user_name} {self.action} {self.resource_type} at {self.created_at}"
-
-
-class DataRetentionPolicy(models.Model):
-    data_type = models.CharField(max_length=50, unique=True)
-    retention_days = models.PositiveIntegerField()
-    anonymize_after_days = models.PositiveIntegerField(null=True, blank=True)
-    description = models.TextField(blank=True)
-    is_active = models.BooleanField(default=True)
-    
-    def __str__(self):
-        return f"{self.data_type}: {self.retention_days} days"
-
-
-class PatientConsent(models.Model):
-    from patients.models import Patient
-    
-    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='consents')
-    consent_type = models.CharField(max_length=50)  # screening, research, data_sharing
-    granted = models.BooleanField(default=False)
-    granted_at = models.DateTimeField(null=True, blank=True)
-    expires_at = models.DateTimeField(null=True, blank=True)
-    document_version = models.CharField(max_length=20, default='1.0')
-    witness_name = models.CharField(max_length=100, blank=True)
-    notes = models.TextField(blank=True)
-    created_at = models.DateTimeField(auto_now_add=True)
-    
-    class Meta:
-        unique_together = ['patient', 'consent_type']
-    
-    def __str__(self):
-        return f"{self.patient.patient_id} - {self.consent_type}: {'Yes' if self.granted else 'No'}"
+    def _get_client_ip(self, request):
+        x_forwarded = request.META.get('HTTP_X_FORWARDED_FOR')
+        if x_forwarded:
+            return x_forwarded.split(',')[0].strip()
+        return request.META.get('REMOTE_ADDR')
