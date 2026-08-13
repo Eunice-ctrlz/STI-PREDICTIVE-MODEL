@@ -53,7 +53,6 @@ export const api = {
     update: (id, data) =>
       fetchApi(`/patients/${encodeURIComponent(id)}`, { method: 'PUT', body: JSON.stringify(data) }),
     delete: (id) => fetchApi(`/patients/${encodeURIComponent(id)}`, { method: 'DELETE' }),
-    visits: (id) => fetchApi(`/patients/${encodeURIComponent(id)}/visits`),
   },
 
   predictions: {

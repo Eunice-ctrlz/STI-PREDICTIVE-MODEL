@@ -66,9 +66,9 @@ def delete_patient(request, patient_id: str):
     patient.save()
     return {"success": True, "message": "Patient deactivated"}
 
-
-@router.get("/{patient_id}/visits")
-def get_patient_visits(request, patient_id: str):
-    patient = get_object_or_404(Patient, patient_id=patient_id)
-    visits = patient.visits.all().values()
-    return {"patient_id": patient_id, "visits": list(visits)}
+# NOTE: a GET /{patient_id}/visits route used to live here, but it read
+# `patient.visits`, and no clinical-visit model has ever existed in this
+# project — Patient's only reverse relations are `predictions` and `consents`.
+# The route raised AttributeError -> HTTP 500 on every call. It is removed
+# rather than faked; re-add it alongside a real Visit model when one exists.
+# The patient's actual screening history is GET /api/predictions/history/{id}.

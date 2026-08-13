@@ -16,6 +16,12 @@ def upload_patient_csv(request, file: UploadedFile = File(...)):
     Upload a CSV file of patient data.
     Expected columns: patient_id, first_name, last_name, date_of_birth, gender, etc.
     """
+    # Read the upload BEFORE it is handed to the FileField. Saving the file to
+    # storage consumes the underlying stream, so the later file.read() returned
+    # b'' and every upload imported 0 rows while still reporting success.
+    raw = file.read()
+    file.seek(0)
+
     job = IngestionJob.objects.create(
         source=DataSource.objects.get_or_create(
             name='CSV Upload',
@@ -24,9 +30,11 @@ def upload_patient_csv(request, file: UploadedFile = File(...)):
         uploaded_file=file,
         status='processing'
     )
-    
+
     try:
-        decoded = file.read().decode('utf-8')
+        # utf-8-sig strips the BOM Excel prepends, which would otherwise corrupt
+        # the first header name and make every patient_id lookup miss.
+        decoded = raw.decode('utf-8-sig')
         reader = csv.DictReader(io.StringIO(decoded))
         
         total = 0
