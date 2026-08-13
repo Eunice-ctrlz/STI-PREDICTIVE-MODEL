@@ -1,6 +1,8 @@
 from django.contrib.gis.db import models as gis_models
 from django.db import models
 
+from clinicians.models import Facility
+
 
 class GeographicRiskZone(models.Model):
     RISK_LEVELS = [
@@ -43,8 +45,6 @@ class GeographicRiskZone(models.Model):
 
 
 class FacilityLocation(models.Model):
-    from clinicians.models import Facility
-    
     facility = models.OneToOneField(Facility, on_delete=models.CASCADE, related_name='geo')
     catchment_area = gis_models.PolygonField(null=True, blank=True, srid=4326)
     service_radius_km = models.FloatField(default=5.0)

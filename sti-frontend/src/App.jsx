@@ -1,4 +1,4 @@
-import { Routes, Route } from 'react-router-dom'
+import { Link, Route, Routes } from 'react-router-dom'
 import Layout from './components/Layout'
 import Dashboard from './pages/Dashboard'
 import Patients from './pages/Patients'
@@ -9,7 +9,19 @@ import Heatmap from './pages/Heatmap'
 import Reports from './pages/Reports'
 import MLModels from './pages/MLModels'
 import AuditLogs from './pages/AuditLogs'
+import Settings from './pages/Settings'
 import LandingPage from './pages/LandingPage'
+import { EmptyState } from './components/States'
+
+function NotFound() {
+  return (
+    <EmptyState
+      title="Page not found"
+      description="That page doesn't exist. It may have been moved or renamed."
+      action={<Link to="/dashboard" className="btn-primary">Back to dashboard</Link>}
+    />
+  )
+}
 
 function App() {
   return (
@@ -25,6 +37,8 @@ function App() {
         <Route path="/reports" element={<Reports />} />
         <Route path="/models" element={<MLModels />} />
         <Route path="/audit" element={<AuditLogs />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="*" element={<NotFound />} />
       </Route>
     </Routes>
   )

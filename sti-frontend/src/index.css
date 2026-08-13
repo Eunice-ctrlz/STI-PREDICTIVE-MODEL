@@ -11,6 +11,10 @@
   body {
     @apply bg-background text-primary;
   }
+  /* Consistent focus ring for keyboard users across every interactive element */
+  :focus-visible {
+    @apply outline-none ring-2 ring-accent/40 ring-offset-2 ring-offset-background;
+  }
 }
 
 @layer components {
@@ -20,24 +24,42 @@
   .card:hover {
     @apply shadow-card-hover;
   }
+  .card-flat {
+    @apply bg-surface rounded-2xl border border-border;
+  }
+
   .btn-primary {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl transition-all duration-200 hover:bg-primary-light active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-primary text-white font-medium rounded-xl transition-all duration-200 hover:bg-primary-light active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
   .btn-accent {
-    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-white font-medium rounded-xl transition-all duration-200 hover:bg-accent-light active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 px-5 py-2.5 bg-accent text-white font-medium rounded-xl transition-all duration-200 hover:bg-accent-light active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100;
   }
   .btn-ghost {
-    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-muted font-medium rounded-xl transition-all duration-200 hover:bg-gray-100 active:scale-[0.98];
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-muted font-medium rounded-xl transition-all duration-200 hover:bg-gray-100 hover:text-primary active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-4 py-2 text-primary font-medium rounded-xl border border-border bg-surface transition-all duration-200 hover:border-accent/50 hover:text-accent active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  /* Form labels. Previously referenced by RiskAssessment but never defined,
+     which left every field label rendering as unstyled body text. */
+  .label {
+    @apply block text-xs font-semibold text-muted uppercase tracking-wider mb-1.5;
   }
   .input-field {
-    @apply w-full px-4 py-2.5 bg-white border border-border rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all;
+    @apply w-full px-4 py-2.5 bg-white border border-border rounded-xl text-sm text-primary placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-accent/20 focus:border-accent transition-all disabled:bg-gray-50 disabled:text-muted;
   }
+  .field-hint {
+    @apply mt-1.5 text-xs text-muted;
+  }
+
   .nav-link {
     @apply flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-medium text-gray-400 transition-all duration-200 hover:bg-white/5 hover:text-white;
   }
   .nav-link.active {
     @apply bg-white/10 text-white;
   }
+
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold;
   }
@@ -56,14 +78,46 @@
   .badge-blue {
     @apply bg-blue-50 text-blue-700 border border-blue-200;
   }
+  .badge-gray {
+    @apply bg-gray-100 text-gray-600 border border-gray-200;
+  }
+  .badge-purple {
+    @apply bg-purple-50 text-purple-700 border border-purple-200;
+  }
+
   .stat-card {
     @apply card p-6;
   }
   .page-header {
-    @apply flex items-center justify-between mb-6;
+    @apply flex flex-col sm:flex-row sm:items-center justify-between gap-4;
   }
   .page-title {
-    @apply text-2xl font-bold text-primary;
+    @apply text-2xl font-bold text-primary tracking-tight;
+  }
+  .page-subtitle {
+    @apply text-sm text-muted mt-1;
+  }
+  .section-title {
+    @apply text-sm font-semibold text-primary;
+  }
+
+  /* Tables — shared so every listing page looks identical */
+  .table-base {
+    @apply w-full text-sm;
+  }
+  .th {
+    @apply text-left py-3.5 px-4 font-medium text-muted text-xs uppercase tracking-wider whitespace-nowrap;
+  }
+  .td {
+    @apply py-3.5 px-4 align-middle;
+  }
+  .tr-hover {
+    @apply hover:bg-gray-50/60 transition-colors;
+  }
+
+  /* Skeleton placeholder used while data loads */
+  .skeleton {
+    @apply animate-pulse bg-gray-200/70 rounded-md;
   }
 }
 
@@ -87,4 +141,15 @@
 .leaflet-container {
   border-radius: 1rem;
   z-index: 1;
+  font-family: inherit;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

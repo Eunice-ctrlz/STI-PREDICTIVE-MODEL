@@ -1,6 +1,6 @@
 from ninja import Schema
 from datetime import date, datetime
-from typing import Optional, List
+from typing import Optional
 from pydantic import Field
 
 
@@ -40,18 +40,25 @@ class PatientOutSchema(Schema):
     gender: str
     age: int
     age_group: str
-    phone: str
-    email: str
-    county: str
-    sub_county: str
-    ward: str
+    phone: Optional[str] = ""
+    email: Optional[str] = ""
+    county: Optional[str] = ""
+    sub_county: Optional[str] = ""
+    ward: Optional[str] = ""
     marital_status: str
+    # The full risk-factor profile, so the patient detail page and the
+    # re-assessment form can show what was actually recorded.
     number_of_partners_12m: int
+    number_of_partners_lifetime: int
     condom_use_frequency: float
     substance_use: bool
+    substance_type: Optional[str] = ""
     prior_sti_history: bool
+    prior_sti_types: Optional[str] = ""
+    hiv_status_known: bool
     hiv_status: str
     symptoms_present: bool
+    symptom_description: Optional[str] = ""
     is_active: bool
     created_at: datetime
     updated_at: datetime
@@ -63,19 +70,38 @@ class PatientListSchema(Schema):
     full_name: str
     age: int
     gender: str
-    county: str
+    county: Optional[str] = ""
     is_active: bool
     created_at: datetime
-    
 
 
 class PatientUpdateSchema(Schema):
+    """
+    Every field is optional and applied with exclude_unset, so a caller can
+    PATCH-style update just what changed. It mirrors PatientCreateSchema's
+    risk fields — without them, re-assessing a patient silently dropped the
+    updated risk factors and predicted on stale data.
+    """
     first_name: Optional[str] = None
     last_name: Optional[str] = None
+    date_of_birth: Optional[date] = None
+    gender: Optional[str] = Field(None, pattern='^[MFOU]$')
     phone: Optional[str] = None
     email: Optional[str] = None
+    address: Optional[str] = None
+    county: Optional[str] = None
+    sub_county: Optional[str] = None
+    ward: Optional[str] = None
+    marital_status: Optional[str] = None
     number_of_partners_12m: Optional[int] = None
-    condom_use_frequency: Optional[float] = None
+    number_of_partners_lifetime: Optional[int] = None
+    condom_use_frequency: Optional[float] = Field(None, ge=0.0, le=1.0)
     substance_use: Optional[bool] = None
+    substance_type: Optional[str] = None
+    prior_sti_history: Optional[bool] = None
+    prior_sti_types: Optional[str] = None
+    hiv_status_known: Optional[bool] = None
+    hiv_status: Optional[str] = None
     symptoms_present: Optional[bool] = None
+    symptom_description: Optional[str] = None
     is_active: Optional[bool] = None

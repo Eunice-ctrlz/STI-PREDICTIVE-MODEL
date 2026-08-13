@@ -21,6 +21,15 @@ if os.name == "nt":
 
     GDAL_LIBRARY_PATH = OSGEO4W + r"\bin\gdal313.dll"
     GEOS_LIBRARY_PATH = OSGEO4W + r"\bin\geos_c.dll"
+    SPATIALITE_LIBRARY_PATH = OSGEO4W + r"\bin\mod_spatialite.dll"
+
+    # Force-load GDAL before anything else can grab conflicting DLLs. This
+    # lives here rather than only in manage.py so that wsgi/asgi entrypoints
+    # (and any bare `django.setup()`) get it too — without it they fail with
+    # "WinError 127: The specified procedure could not be found".
+    from ctypes import CDLL
+
+    CDLL(GDAL_LIBRARY_PATH)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
@@ -43,36 +52,21 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
-     'ninja',
+    'django.contrib.gis',
+
+    'ninja',
     'corsheaders',
-
-    'patients',
-    'prediction_engine',
-    'clinicians',
-    'geospatial',
-    'moh_reporting',
-    'compliance',
-    'data_ingestion',
-    'preprocessing',
-    'ml_pipeline',
-    
-
-
-
-    'patients',
-    'clinicians',
-    'prediction_engine',
-    'preprocessing',
-    'ml_pipeline',
-    'data_ingestion',
-    'geospatial',
-    'moh_reporting',
-    'compliance',
-
     'rest_framework',
 
-
+    'patients',
+    'prediction_engine',
+    'clinicians',
+    'geospatial',
+    'moh_reporting',
+    'compliance',
+    'data_ingestion',
+    'preprocessing',
+    'ml_pipeline',
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -86,6 +80,10 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+
+    # Records every API request into compliance.AuditLog. Must run after
+    # AuthenticationMiddleware so request.user is resolved.
+    'compliance.middleware.AuditLogMiddleware',
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -113,7 +111,9 @@ WSGI_APPLICATION = 'config.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        # SpatiaLite so the geospatial app's PointField/PolygonField have
+        # real geometry column types on top of sqlite
+        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
         'NAME': BASE_DIR / 'db.sqlite3',
 
     }
@@ -161,9 +161,6 @@ CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
 ]
-MEDIA_ROOT = BASE_DIR / 'media'
-MEDIA_URL = '/media/'
-
 # Media files for model artifacts
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'

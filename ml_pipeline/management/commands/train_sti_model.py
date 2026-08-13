@@ -205,6 +205,15 @@ class Command(BaseCommand):
         with open(os.path.join(model_dir, 'metadata.json'), 'w') as f:
             json.dump(metadata, f, indent=2)
 
+        # Record the run in the MLModel registry so the ML Models page shows
+        # these artifacts and their real metrics, not a stale hand-written row.
+        from ml_pipeline.registry import register_model
+        registered, created = register_model(model_name)
+        self.stdout.write(self.style.SUCCESS(
+            f"{'Registered' if created else 'Updated'} registry entry: "
+            f"{registered.name} v{registered.version}"
+        ))
+
         self.stdout.write(self.style.SUCCESS(
             f"\nModel saved to: {model_dir}\n"
             f"  - model.joblib\n"

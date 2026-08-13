@@ -39,13 +39,20 @@ class AuditLogMiddleware:
         return response
     
     def _get_action(self, method, path):
-        if 'predict' in path:
+        # Match the prediction-generating endpoints specifically. A bare
+        # 'predict' substring also matches '/api/predictions/5', which is a
+        # read, and would log every lookup as if a new score was generated.
+        if '/predictions/predict' in path:
             return 'predict'
+        if 'validate' in path:
+            return 'update'
         if 'login' in path:
             return 'login'
         if 'logout' in path:
             return 'logout'
-        if 'export' in path or 'report' in path:
+        # Only a genuine export counts as one. Matching 'report' here would
+        # label every dashboard read as a data export.
+        if 'export' in path or 'download' in path:
             return 'export'
         if method == 'POST':
             return 'create'
@@ -54,16 +61,24 @@ class AuditLogMiddleware:
         if method == 'DELETE':
             return 'delete'
         return 'read'
-    
+
+    # Longest-prefix-first so '/api/predictions/' isn't caught by a broader rule.
+    RESOURCE_MAP = (
+        ('/patients', 'Patient'),
+        ('/predictions', 'Prediction'),
+        ('/clinicians', 'Clinician'),
+        ('/reporting', 'Report'),
+        ('/geospatial', 'Geospatial'),
+        ('/compliance', 'Compliance'),
+        ('/ingestion', 'DataIngestion'),
+        ('/ml', 'MLModel'),
+        ('/admin', 'Admin'),
+    )
+
     def _get_resource_type(self, path):
-        if 'patients' in path:
-            return 'Patient'
-        if 'predictions' in path:
-            return 'Prediction'
-        if 'clinicians' in path:
-            return 'Clinician'
-        if 'reports' in path:
-            return 'Report'
+        for prefix, label in self.RESOURCE_MAP:
+            if prefix in path:
+                return label
         return 'Unknown'
     
     def _get_client_ip(self, request):
