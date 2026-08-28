@@ -101,4 +101,16 @@ export const api = {
   ingestion: {
     jobs: () => fetchApi('/ingestion/jobs'),
   },
+
+  /**
+   * AI explanation layer. Entirely optional: every call here can fail without
+   * affecting the prediction endpoints above, so callers are expected to
+   * degrade rather than surface an error state.
+   */
+  ai: {
+    status: () => fetchApi('/ai/status'),
+    explainPrediction: (predictionId, { refresh = false } = {}) =>
+      post('/ai/explain-prediction', { prediction_id: predictionId, refresh }),
+    storedExplanation: (predictionId) => fetchApi(`/ai/explanation/${predictionId}`),
+  },
 };

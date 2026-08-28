@@ -7,6 +7,13 @@ from pathlib import Path
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / 'frontend'
 
+# Load .env before anything below reads os.environ. Absent file is not an
+# error: every .env-backed setting has a safe default, and the ML prediction
+# path does not depend on any of them.
+from dotenv import load_dotenv
+
+load_dotenv(BASE_DIR / '.env')
+
 if os.name == "nt":
     OSGEO4W = r"C:\OSGeo4W"
     os.environ["OSGEO4W_ROOT"] = OSGEO4W
@@ -67,6 +74,7 @@ INSTALLED_APPS = [
     'data_ingestion',
     'preprocessing',
     'ml_pipeline',
+    'ai_service',
 ]
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
@@ -168,3 +176,54 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Default primary key
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
+
+# ---------------------------------------------------------------------------
+# AI explanation layer (ai_service)
+#
+# These settings configure the optional LLM layer that turns a machine
+# learning prediction into a plain-language explanation. They are deliberately
+# isolated from every ML setting above: the prediction engine reads none of
+# them, so a missing key or an unreachable provider cannot affect scoring.
+# ---------------------------------------------------------------------------
+
+
+def _env_bool(name, default):
+    return os.environ.get(name, str(default)).strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def _env_int(name, default):
+    try:
+        return int(os.environ.get(name, '').strip() or default)
+    except ValueError:
+        return default
+
+
+# Master switch. False disables the feature without removing credentials.
+AI_EXPLANATIONS_ENABLED = _env_bool('AI_EXPLANATIONS_ENABLED', True)
+
+# Key into the provider registry in ai_service/providers/__init__.py.
+#
+# Defaults to 'ollama': the free, open-source, fully local path. It needs
+# no API key and no account, and the prediction context never leaves this
+# machine -- also the strongest privacy position available for health
+# data. 'anthropic' stays available for anyone wanting hosted quality and
+# willing to pay per request.
+AI_PROVIDER = os.environ.get('AI_PROVIDER', 'ollama').strip() or 'ollama'
+
+AI_MODEL = os.environ.get('AI_MODEL', 'llama3.2:3b').strip() or 'llama3.2:3b'
+AI_MAX_TOKENS = _env_int('AI_MAX_TOKENS', 2000)
+# Sized for local CPU inference, which is far slower than a hosted API: a
+# 3B model takes roughly 30s per explanation without a GPU, so the old
+# 30s default would cut generation off mid-sentence.
+AI_TIMEOUT_SECONDS = _env_int('AI_TIMEOUT_SECONDS', 180)
+
+# Provider credentials. Read from the environment only - never hardcoded, and
+# never returned by any API endpoint.
+ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '').strip()
+
+# Endpoint for providers that talk to a host, currently Ollama. Blank means
+# the provider's own default (http://localhost:11434). Local providers need
+# no credentials at all -- each provider class declares whether it requires
+# an API key, so leaving ANTHROPIC_API_KEY empty is correct when running
+# AI_PROVIDER=ollama.
+AI_BASE_URL = os.environ.get('AI_BASE_URL', '').strip()

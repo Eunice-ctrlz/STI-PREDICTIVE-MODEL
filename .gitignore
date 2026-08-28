@@ -1,6 +1,11 @@
 venv/
+.venv/
 __pycache__/
 *.pyc
 db.sqlite3
-.envnode_modules/
+
+# Secrets - never commit. Use .env.example as the template.
+.env
+
+node_modules/
 **/node_modules/

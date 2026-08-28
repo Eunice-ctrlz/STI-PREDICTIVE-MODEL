@@ -7,6 +7,7 @@ import {
 import { api } from '../lib/api'
 import { useApi } from '../hooks/useData'
 import { ErrorState, LoadingState } from '../components/States'
+import AIExplanation from '../components/AIExplanation'
 import { formatDateTime, getRiskConfig, humanize } from '../lib/utils'
 
 export default function PredictionResult() {
@@ -211,6 +212,8 @@ export default function PredictionResult() {
           <p className="text-sm leading-relaxed text-primary">{result.recommended_actions}</p>
         </div>
       </section>
+
+      <AIExplanation predictionId={predictionId} />
 
       {validateError && (
         <div className="card-flat border-red-200 bg-red-50/60 p-4 text-sm text-red-700">

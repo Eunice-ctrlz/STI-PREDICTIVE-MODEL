@@ -72,6 +72,7 @@ class AuditLogMiddleware:
         ('/compliance', 'Compliance'),
         ('/ingestion', 'DataIngestion'),
         ('/ml', 'MLModel'),
+        ('/ai', 'AIExplanation'),
         ('/admin', 'Admin'),
     )
 

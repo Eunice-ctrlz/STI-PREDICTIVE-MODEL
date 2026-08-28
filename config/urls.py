@@ -13,6 +13,7 @@ from moh_reporting.api import router as reporting_router
 from compliance.api import router as compliance_router
 from data_ingestion.api import router as ingestion_router
 from ml_pipeline.api import router as ml_router
+from ai_service.api import router as ai_router
 
 api = NinjaAPI(
     title="STI Predictor API",
@@ -29,6 +30,7 @@ api.add_router("/reporting/", reporting_router)
 api.add_router("/compliance/", compliance_router)
 api.add_router("/ingestion/", ingestion_router)
 api.add_router("/ml/", ml_router)
+api.add_router("/ai/", ai_router)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
