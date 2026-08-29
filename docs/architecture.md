@@ -30,8 +30,8 @@ LLM layer only explains what the ML engine already decided.
 │  • feature preprocessing   │               │  • de-identify context       │
 │  • RandomForest predict    │               │  • build prompts             │
 │  • risk scoring / banding  │               │  • call provider             │
-│  • SHAP explainability     │               │  • validate + persist        │
-│  • recommendations         │               │                              │
+│  • SHAP explainability     │               │  • screen for unsafe text    │
+│  • recommendations         │               │  • validate + persist        │
 └───────┬────────────────────┘               └──────────────┬───────────────┘
         │                                                   │
 ┌───────▼────────────────────┐               ┌──────────────▼───────────────┐
@@ -75,10 +75,15 @@ sequenceDiagram
     AI->>AI: de-identify context
     AI->>P: constrained JSON request
 
-    alt provider succeeds
+    alt provider succeeds and output passes the safety screen
         P-->>AI: structured explanation
+        AI->>AI: screen prose for unsafe phrasing
         AI->>DB: save PredictionExplanation
         AI-->>F: 200 explanation
+    else output fails the screen
+        AI->>P: regenerate, naming the offending phrase
+        P-->>AI: second attempt
+        Note over AI: still unsafe after retry -> 503, nothing shown
     else provider fails or is unconfigured
         AI-->>F: 503 friendly notice
         Note over F: Prediction still displayed unchanged
@@ -97,18 +102,36 @@ sequenceDiagram
 
 ## Safety controls in the AI layer
 
-Four independent mechanisms, so no single failure removes the guarantee:
+Five independent mechanisms, so no single failure removes the guarantee.
+They are listed weakest first:
 
 1. **Prompt** — `ai_service/prompts.py` states all ten safety rules explicitly.
+   This is the only layer that depends on the model choosing to comply, which
+   is why it is not relied upon alone.
 2. **Schema** — `EXPLANATION_JSON_SCHEMA` has no field for a score,
    probability, risk level or diagnosis, and sets `additionalProperties:
    false`. The model has no channel through which to override the prediction,
    even if it ignores the prompt.
-3. **Server-owned disclaimer** — `DISCLAIMER_TEXT` is written over whatever the
+3. **Post-generation screen** — `ai_service/safety.py` inspects the generated
+   prose for diagnostic assertions, claimed certainty, discouraging testing,
+   alarmism and duplicated paragraphs. On a violation it regenerates once,
+   naming the exact offending phrase; if the second attempt also fails, no
+   explanation is shown at all.
+4. **Server-owned disclaimer** — `DISCLAIMER_TEXT` is written over whatever the
    model returns, so the disclaimer cannot drift or be argued away.
-4. **De-identification** — `context_builder.py` sends an age *band* and the
+5. **De-identification** — `context_builder.py` sends an age *band* and the
    model's own outputs. Name, patient ID, date of birth, phone, email, address
    and county never leave the system.
+
+Layer 3 is what makes small local models usable. Observed failures it catches:
+
+| Model | Produced | Caught by |
+|---|---|---|
+| `qwen2.5:0.5b` | "the person has a high risk of contracting STIs, including chlamydia, gonorrhea, and syphilis" | diagnostic pattern |
+| `qwen2.5:0.5b` | identical text in `summary` and `what_this_means` | duplicate detection |
+| `llama3.2:3b` | "you have" in `what_this_means` | diagnostic pattern; retry produced clean output |
+
+The regenerate-once-then-refuse path is shown in the sequence diagram above.
 
 ## Phase 2: planned RAG pipeline
 
