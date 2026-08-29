@@ -104,6 +104,23 @@ def get_cached_explanation(prediction) -> Optional[PredictionExplanation]:
     return PredictionExplanation.objects.filter(prediction=prediction).first()
 
 
+def _screen(payload: Dict, context: Dict, documents: List[Dict]) -> List[Dict]:
+    """
+    Run every safety screen over a generated explanation.
+
+    Two screens with different inputs: screen_explanation() judges the prose
+    on its own (diagnosis, certainty, alarmism, duplication), while
+    screen_grounding() judges it against what the model was actually given
+    (invented statistics, fabricated citations, treatment advice,
+    contradictions of the risk level). Combining them here means the retry
+    path handles both identically and callers cannot forget one.
+    """
+    return (
+        safety.screen_explanation(payload)
+        + safety.screen_grounding(payload, context, documents)
+    )
+
+
 def generate_explanation(
     prediction,
     ai_settings: AISettings = None,
@@ -122,9 +139,31 @@ def generate_explanation(
 
     context = build_explanation_context(prediction)
 
-    # Phase 2 seam: currently always an empty list.
-    retriever = retrieval.get_retriever()
-    documents = retriever.retrieve(retrieval.build_retrieval_query(context))
+    # Grounding passages from the knowledge base, or none.
+    #
+    # Guarded even though ChromaRetriever already swallows its own failures:
+    # a Retriever is an interface anyone can implement, and a buggy one must
+    # not be able to turn a working explanation into a 500. Grounding is an
+    # enhancement, so its worst case is an ungrounded explanation -- the same
+    # supported path taken when no knowledge base exists at all.
+    try:
+        from django.conf import settings
+
+        retriever = retrieval.get_retriever()
+        documents = retriever.retrieve(
+            retrieval.build_retrieval_query(context),
+            # Each injected passage lengthens the prompt, and on a local CPU
+            # model prompt length costs real generation time -- roughly a
+            # doubling between none and four passages. RAG_TOP_K is the lever
+            # for that tradeoff.
+            limit=getattr(settings, 'RAG_TOP_K', 4),
+        )
+    except Exception:  # noqa: BLE001 - never let retrieval break generation
+        logger.exception(
+            'Retriever failed for prediction %s; continuing without grounding',
+            prediction.pk,
+        )
+        documents = []
 
     user_prompt = prompts.build_user_prompt(context, context_documents=documents)
     request_id = f'prediction-{prediction.pk}'
@@ -142,7 +181,7 @@ def generate_explanation(
     # small local models do exactly that. On a violation, retry once naming
     # the offending phrase -- far more effective on a weak model than
     # repeating the rule it already ignored.
-    violations = safety.screen_explanation(validated)
+    violations = _screen(validated, context, documents)
     if violations:
         logger.warning(
             'Safety screen rejected explanation for prediction %s: %s',
@@ -158,7 +197,7 @@ def generate_explanation(
         )
         validated = validate_explanation_payload(retry_payload)
 
-        violations = safety.screen_explanation(validated)
+        violations = _screen(validated, context, documents)
         if violations:
             # Two failures means this model cannot follow the rules for this
             # input. Showing unsafe text to a patient is worse than showing

@@ -212,10 +212,12 @@ AI_PROVIDER = os.environ.get('AI_PROVIDER', 'ollama').strip() or 'ollama'
 
 AI_MODEL = os.environ.get('AI_MODEL', 'llama3.2:3b').strip() or 'llama3.2:3b'
 AI_MAX_TOKENS = _env_int('AI_MAX_TOKENS', 2000)
-# Sized for local CPU inference, which is far slower than a hosted API: a
-# 3B model takes roughly 30s per explanation without a GPU, so the old
-# 30s default would cut generation off mid-sentence.
-AI_TIMEOUT_SECONDS = _env_int('AI_TIMEOUT_SECONDS', 180)
+# Sized for local CPU inference, which is far slower than a hosted API.
+# Measured on a 3B model without a GPU: ~80s ungrounded, ~160s with RAG
+# passages injected, since the longer prompt costs real processing time.
+# 300s leaves headroom for that plus variance; a hosted provider returns
+# in seconds and is unaffected by the larger value.
+AI_TIMEOUT_SECONDS = _env_int('AI_TIMEOUT_SECONDS', 300)
 
 # Provider credentials. Read from the environment only - never hardcoded, and
 # never returned by any API endpoint.
@@ -227,3 +229,38 @@ ANTHROPIC_API_KEY = os.environ.get('ANTHROPIC_API_KEY', '').strip()
 # an API key, so leaving ANTHROPIC_API_KEY empty is correct when running
 # AI_PROVIDER=ollama.
 AI_BASE_URL = os.environ.get('AI_BASE_URL', '').strip()
+
+# ---------------------------------------------------------------------------
+# RAG knowledge base (ai_service.rag)
+#
+# Retrieval grounds AI explanations in trusted health guidance. It is
+# strictly additive and strictly optional: with RAG_ENABLED False, or with
+# sentence-transformers / chromadb absent, retrieval.get_retriever() returns
+# NullRetriever and explanations are generated exactly as before.
+#
+# The dependency chain degrades one level at a time and never upward:
+#   no knowledge base  -> ungrounded explanation
+#   no LLM             -> no explanation, prediction unaffected
+# ---------------------------------------------------------------------------
+
+RAG_ENABLED = _env_bool('RAG_ENABLED', True)
+
+# Where Chroma persists its index. Blank uses MEDIA_ROOT/chroma. Treated as a
+# rebuildable cache: KnowledgeDocument/DocumentChunk are the system of record.
+RAG_CHROMA_PATH = os.environ.get('RAG_CHROMA_PATH', '').strip()
+RAG_COLLECTION_NAME = os.environ.get('RAG_COLLECTION_NAME', 'sti_knowledge').strip()
+
+# Embedding model. 384 dimensions, 256-token input ceiling, ~90 MB.
+RAG_EMBEDDING_MODEL = os.environ.get('RAG_EMBEDDING_MODEL', 'all-MiniLM-L6-v2').strip()
+
+# Chunking, in CHARACTERS. See ai_service/rag/chunking.py for why characters
+# rather than words: 500 words would exceed the encoder's 256-token limit and
+# be silently truncated.
+RAG_CHUNK_SIZE = _env_int('RAG_CHUNK_SIZE', 500)
+RAG_CHUNK_OVERLAP = _env_int('RAG_CHUNK_OVERLAP', 100)
+
+# How many passages to inject, and the cosine similarity below which a
+# passage is treated as irrelevant. Returning nothing is safer than grounding
+# an explanation in a weakly-related passage.
+RAG_TOP_K = _env_int('RAG_TOP_K', 3)
+RAG_MIN_SCORE = float(os.environ.get('RAG_MIN_SCORE', '0.35') or 0.35)

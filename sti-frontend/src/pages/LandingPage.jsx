@@ -86,7 +86,6 @@ export default function LandingPage() {
             </div>
 
             <div className="relative">
-              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-accent/10 to-primary/5 blur-2xl" />
               <div className="card relative space-y-4 p-6">
                 <div className="flex items-start justify-between">
                   <div>
@@ -184,7 +183,7 @@ export default function LandingPage() {
                 <h3 className="mb-2 font-semibold text-primary">{item.title}</h3>
                 <p className="text-sm leading-relaxed text-muted">{item.desc}</p>
                 {i < 3 && (
-                  <div className="absolute right-0 top-8 hidden h-px w-full bg-gradient-to-r from-border to-transparent md:block" />
+                  <div className="absolute right-0 top-8 hidden h-px w-full bg-border md:block" />
                 )}
               </div>
             ))}

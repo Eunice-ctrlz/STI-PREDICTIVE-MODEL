@@ -54,6 +54,7 @@ Full diagrams, including a request sequence diagram: [`docs/architecture.md`](do
 | Database | SQLite via SpatiaLite (`django.contrib.gis`) |
 | ML | scikit-learn 1.9, joblib, numpy, pandas |
 | LLM | Anthropic (`claude-opus-5`) or Ollama (local open-source models), behind a provider abstraction |
+| RAG | sentence-transformers (all-MiniLM-L6-v2) + ChromaDB, optional |
 | Frontend | React 18, Vite 6, Tailwind 3, react-router-dom 6 |
 
 **Django apps**
@@ -441,7 +442,7 @@ python manage.py test              # everything
 python manage.py test ai_service   # the AI layer
 ```
 
-74 tests cover:
+146 tests cover:
 
 - Valid explanation requests and response shape
 - Invalid request data (missing / wrong-typed `prediction_id`) → 422
@@ -466,6 +467,11 @@ python manage.py test ai_service   # the AI layer
 - The safety screen: real violating output captured from local models, the
   single corrective retry, refusal to show persistently unsafe text, and that
   naming an STI to *test for* is never flagged
+- The RAG pipeline: document loading and cleaning, chunk boundaries and
+  overlap, embedding dimensions and semantic ordering, vector search, the
+  relevance floor, ingestion rollback, prompt-injection fencing, and
+  hallucination screening — with the heavyweight dependencies exercised for
+  real rather than mocked
 
 No test reaches a network. The hosted provider is mocked at its boundary and
 Ollama at its HTTP transport, so the suite runs offline, without credentials,
@@ -473,23 +479,42 @@ and without Ollama installed.
 
 ---
 
-## Phase 2: planned RAG pipeline
+## RAG: grounding explanations in trusted guidance
 
-Not implemented. The seam exists at `ai_service/retrieval.py`, is called on
-every request, and currently returns an empty list.
+**Implemented.** Explanations can be grounded in published health guidance
+(WHO, CDC, Kenya MoH) instead of relying on the model's own weights.
 
 ```
-Trusted documents → processing → chunking → embeddings
-        → vector database (Chroma / FAISS)
-        → relevant context retrieval        ← retrieval.py
-        → LLM
-        → grounded educational response
+Trusted documents → text extraction → chunking → embeddings
+        → ChromaDB → retrieval → context injection
+        → Ollama / Anthropic → structured explanation
 ```
 
-Adding it means writing one retriever class and pointing `get_retriever()` at
-it. The service, prompts, schemas, API and frontend do not change — the
-`context_documents` block is already rendered into the prompt and already
-covered by a test.
+| Component | Where | Technology |
+|---|---|---|
+| Text extraction | `ai_service/rag/document_loader.py` | pypdf; PDF, TXT, MD |
+| Chunking | `ai_service/rag/chunking.py` | 500 chars, 100 overlap |
+| Embeddings | `ai_service/rag/embedding_service.py` | all-MiniLM-L6-v2, 384-d |
+| Vector store | `ai_service/rag/vector_store.py` | ChromaDB, cosine |
+| Retrieval | `ai_service/rag/retriever.py` | top-k with a relevance floor |
+| Provenance | `KnowledgeDocument`, `DocumentChunk` | relational system of record |
+
+```bash
+python manage.py ingest_sti_documents --path docs/knowledge --source who
+python manage.py ingest_sti_documents --status
+```
+
+Entirely optional. Without `sentence-transformers` and `chromadb`, or with
+`RAG_ENABLED=False`, `NullRetriever` is used and explanations are generated
+ungrounded exactly as before — a supported mode, not a degraded one.
+
+Retrieval adds three safety checks that only matter once the model is handed
+source text: invented statistics, treatment advice, and contradictions of the
+ML risk level. Retrieved passages are also treated as untrusted input and
+fenced against prompt injection.
+
+Full design notes, parameter rationale and the Windows SSL caveat:
+[`docs/rag.md`](docs/rag.md).
 
 ---
 

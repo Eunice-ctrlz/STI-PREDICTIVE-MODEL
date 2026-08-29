@@ -1,9 +1,9 @@
 """
-Retrieval seam for the future RAG pipeline (Phase 2).
+Retrieval contract for the RAG pipeline.
 
-Nothing here performs retrieval yet. What exists is the contract and the call
-site, so that grounding explanations in trusted documents later is an additive
-change:
+This module owns the interface and the selection logic; the implementation
+lives in `ai_service.rag`. Keeping them apart means `explanation_service`
+depends only on a two-method protocol and never on chromadb or torch:
 
     Trusted documents
         -> document processing
@@ -14,12 +14,10 @@ change:
         -> LLM
         -> grounded educational response
 
-explanation_service already calls get_retriever().retrieve(...) on every
-request and threads the result into prompts.build_user_prompt() as a
-`context_documents` block. Because that path is live and returns an empty
-list, adding a real retriever means writing one class here and pointing
-get_retriever() at it -- the service, prompts, schemas, API and frontend all
-stay as they are.
+explanation_service calls get_retriever().retrieve(...) on every request and
+threads the result into prompts.build_user_prompt() as a `context_documents`
+block. ChromaRetriever now fills that block from the ingested knowledge base;
+NullRetriever remains the fallback whenever retrieval cannot run.
 
 A retrieved document is a plain dict:
 
@@ -73,7 +71,24 @@ def get_retriever() -> Retriever:
     """
     Return the active retriever.
 
-    Phase 2 will select an implementation from settings here, the same way
-    providers.get_provider() selects an LLM.
+    Selects an implementation the same way providers.get_provider() selects
+    an LLM, and falls back to NullRetriever whenever real retrieval cannot
+    run: RAG switched off, sentence-transformers or chromadb not installed,
+    or the vector store unopenable.
+
+    The fallback is deliberate rather than an error path. Grounding is an
+    enhancement to an explanation, an explanation is an enhancement to a
+    prediction, and each layer degrades to the one below it instead of
+    failing upward. NullRetriever is therefore a supported operating mode,
+    not a placeholder any more.
     """
-    return NullRetriever()
+    from .rag.retriever import ChromaRetriever, is_configured
+
+    if not is_configured():
+        return NullRetriever()
+
+    from django.conf import settings
+
+    return ChromaRetriever(
+        min_score=getattr(settings, 'RAG_MIN_SCORE', None),
+    )

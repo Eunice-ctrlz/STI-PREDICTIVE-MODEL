@@ -1,6 +1,7 @@
 annotated-types==0.7.0
 anthropic==1.2.0
 asgiref==3.11.1
+chromadb==1.5.9
 django-cors-headers==4.9.0
 django-ninja==1.6.2
 Django==6.0.6
@@ -11,10 +12,12 @@ numpy==2.5.0
 pandas==3.0.3
 pydantic==2.13.4
 pydantic_core==2.46.4
+pypdf==6.16.2
 python-dateutil==2.9.0.post0
 python-dotenv==1.2.3
 scikit-learn==1.9.0
 scipy==1.18.0
+sentence-transformers==6.0.0
 six==1.17.0
 sqlparse==0.5.5
 threadpoolctl==3.6.0

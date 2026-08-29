@@ -3,9 +3,18 @@ venv/
 __pycache__/
 *.pyc
 db.sqlite3
+.claude/
+.vscode/
 
 # Secrets - never commit. Use .env.example as the template.
 .env
 
 node_modules/
 **/node_modules/
+
+# Rebuildable vector index. KnowledgeDocument/DocumentChunk are the
+# system of record; this is a cache and must not be committed.
+media/chroma/
+
+# Uploaded source documents (may be large or licence-restricted).
+media/knowledge/
