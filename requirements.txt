@@ -24,3 +24,8 @@ threadpoolctl==3.6.0
 typing-inspection==0.4.2
 typing_extensions==4.16.0
 tzdata==2026.2
+shap==0.52.0
+dj-database-url==3.1.2
+psycopg[binary]==3.3.6
+whitenoise==6.12.0
+gunicorn==26.2.0
