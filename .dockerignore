@@ -1,0 +1,13 @@
+.git
+.github
+.venv
+venv
+__pycache__
+*.pyc
+.env
+db.sqlite3
+staticfiles
+sti-frontend/node_modules
+sti-frontend/dist
+media/chroma
+media/knowledge
